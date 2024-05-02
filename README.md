@@ -1,1 +1,3 @@
-# violetmacros
+## Welcome! Here, you can download my Excel macro files.
+I'm Jess Obie and I created these Excel macros as part of my work at Binghamton University Libraries. I'm making these files available as part of my Excel Macro presentation for the IDS Project's Virtual User Group event in May 2024. I don't believe that these macros will be useable for anyone else out-of-the-box, since there is a lot of code specific to Binghamton University's Alma configuration, but I am hopeful that they might be able to help you get started making your own. I hope by reviewing the files that you are able to learn more about the functions and syntax of VBA, and get some ideas for macros that you want to write for your workflows. I have learned a lot since creating some of these files, and have much more to learn, so there are many places where my code could be improved.
+Please feel free to download and look through these files, and adapt the code to your work.

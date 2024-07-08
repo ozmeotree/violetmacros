@@ -1,13 +1,14 @@
 Sub PickFromShelfLending()
 
+'Part 1: Set up the Sheet'
+    
 'This macro is used by our Lending department on the Alma Pick From Shelf. It formats the list into 1 pull list.'
 'I have combined a lot of columns into 1 notes field to keep this as easy to read as possible'
-
-'Part 1: Set up the Sheet'
     
     'Set the active sheet as a variable for easier reference
     Dim ws As Worksheet
     Set ws = ActiveSheet
+    Worksheets(1).Name = "Lending Requests"
     Dim cell as Range
 
     ' Check if a filter is currently applied
@@ -26,10 +27,9 @@ Sub PickFromShelfLending()
     ws.Cells(1, 2).Value = "#"
     ws.Columns("B").ColumnWidth = 4
 
-'Part 2: Find all of the columns we're going to use and put them in the right order using X = X+1
+'Part 2: Find all of the columns we're going to use and put them in the right order using X = X+1 to keep the columns in the ordered order
 
     'Create variable X as integer'
-    'Again, X could definitely just be Integer, but I've been using Long for so long I should just keep it for now
     Dim X as Long
     X = 3
 
@@ -43,14 +43,15 @@ Sub PickFromShelfLending()
     End If
     X = X + 1
 
-    ' Find and move "Description" column'
-    Dim DescCol As Long
-    DescCol = ws.Rows(1).Find("Description").Column
-    
-    If DescCol <> X Then
-        ws.Columns(DescCol).Cut
+    'Find and move the "Resource Sharing Volume" column'
+    Dim RSVolumeCol As Long
+    RSVolumeCol = ws.Rows(1).Find("Resource Sharing Volume").Column
+
+    If RSVolumeCol <> X Then
+        ws.Columns(RSVolumeCol).Cut
         ws.Columns(X).Insert Shift:=xlToRight
     End If
+    ws.Cells(1, X).Value = "Vol/Notes"  
     X = X + 1
 
     ' Find and move "Location" column'
@@ -153,12 +154,12 @@ Sub PickFromShelfLending()
     End If   
     X = X + 1
 
-    'Find and move the "Resource Sharing Volume" column'
-    Dim RSVolumeCol As Long
-    RSVolumeCol = ws.Rows(1).Find("Resource Sharing Volume").Column
-
-    If RSVolumeCol <> X Then
-        ws.Columns(RSVolumeCol).Cut
+    ' Find and move "Description" column'
+    Dim DescCol As Long
+    DescCol = ws.Rows(1).Find("Description").Column
+    
+    If DescCol <> X Then
+        ws.Columns(DescCol).Cut
         ws.Columns(X).Insert Shift:=xlToRight
     End If
     X = X + 1
@@ -170,7 +171,10 @@ Sub PickFromShelfLending()
 
     Dim Description as Long
     Description = ws.Rows(1).Find("Description").Column
-    ws.Cells(1, Description).Value = "Description/Notes"
+    'ws.Cells(1, Description).Value = "Description/Notes"
+    
+    Dim RSVolume As Long
+    RSVolume = ws.Rows(1).Find("Vol/Notes").Column  
 
     Dim Location as Long
     Location = ws.Rows(1).Find("Location").Column
@@ -205,23 +209,20 @@ Sub PickFromShelfLending()
     RType = ws.Rows(1).Find("Request Type").Column
     ws.Cells(1, RType).Value = "Type"
 
-    Dim RSVolume As Long
-    RSVolume = ws.Rows(1).Find("Resource Sharing Volume").Column
-
     'lastRow'
     lastRow = ws.Cells(ws.Rows.Count, Title).End(xlUp).Row
 
 'Part 4: Alter Column Values'
 
     'Add floor number to location'
-    'vbCrLf (line break) does not work on macs; there's another word for it'
+    'vbCrLf does not work on macs; there's another word for it'
     For i = 2 to lastRow
         Set cell = ws.Cells(i, Location)
         If InStr(1, LCase(cell), "fine art") > 0 Then
             cell.Value = "Fine Arts"
         ElseIf InStr(1, LCase(cell), "reserves") > 0 Then
             cell.Value = "Floor 1 Reserves"
-            ws.Cells(i, Description).Value = "Non-Lending Location " & ws.Cells(i, Description).Value
+            ws.Cells(i, RSVolume).Value = "Non-Lending Location " & ws.Cells(i, RSVolume).Value
         ElseIf InStr(1, LCase(cell), "manew") > 0 Then
             cell.Value = "Floor 1" & vbCrLf & "New Books"
         ElseIf InStr(1, LCase(cell), "oversize") > 0 Then
@@ -230,7 +231,7 @@ Sub PickFromShelfLending()
             cell.Value = "Floor 1" & vbCrLf & cell.Value
         ElseIf InStr(1, LCase(cell), "mezzanine") > 0 Then
             cell.Value = "Floor 2" & vbCrLf & cell.Value
-            ws.Cells(i, Description).Value = "Non-Lending Location " & ws.Cells(i, Description).Value
+            ws.Cells(i, RSVolume).Value = "Non-Lending Location " & ws.Cells(i, RSVolume).Value
         ElseIf InStr(1, LCase(cell), "dvd") > 0 Then
             cell.Value = "Floor 1" & vbCrLf & cell.Value
         ElseIf InStr(1, LCase(cell), "mwang") > 0 Then
@@ -254,7 +255,7 @@ Sub PickFromShelfLending()
             cell.Value = "Floor 2" & vbCrLf & cell.Value
         ElseIf InStr(1, LCase(cell), "leisure") > 0 Then
             cell.Value = "Floor 2" & vbCrLf & cell.Value
-            ws.Cells(i, Description).Value = "Non-Lending Location " & ws.Cells(i, Description).Value
+            ws.Cells(i, RSVolume).Value = "Non-Lending Location " & ws.Cells(i, RSVolume).Value
         ElseIf InStr(1, LCase(cell), "success") > 0 Then
             cell.Value = "Floor 2" & vbCrLf & cell.Value
         ElseIf InStr(1, LCase(cell), "loops") > 0 Then
@@ -282,11 +283,6 @@ Sub PickFromShelfLending()
     ws.Range("C:C").PasteSpecial xlPasteValues
     ws.Range("B:B").EntireColumn.Delete
 
-
-    'Instead of having all of these be individual for loops, I could probably combine them into 1, which would be more efficient'
-    'However, the part of the code that takes the longest to run is converting the data into a table, which is not something I can improve, so I haven't been motivated to tighten this up
-    'Having it all separate like this still only takes a few seconds on my computer'
-
     'Loop through each cell in Title and truncate the value if it exceeds 150 characters
     For i = 2 To lastRow
         Set cell = ws.Cells(i, Title)
@@ -307,62 +303,46 @@ Sub PickFromShelfLending()
     For i = 2 To lastRow
         Set cell = ws.Cells(i, Description)
         If Left(cell.Value, 21) = "Chapter/Article Title" Then
-            cell.Value = "Item(s) may not scan-in properly; check request if so."
+            ws.Cells(i, RSVolume).Value = "Item(s) may not scan-in properly; check request if so. " & ws.Cells(i, RSVolume).Value
         ElseIf Len(cell.Value) > 100 Then
-            cell.Value = Left(cell.Value, 100)
+            ws.Cells(i, Description).Value = Left(cell.Value, 100)
         End If
     Next i
 
-    'Remove "Title:" from the Request Note'
+    'Remove "Title:" from the Request Note, remove ill forwarding, check title'
+    Dim RNote as Long
+    Dim Length as Long
     For i = 2 To lastRow
         Set cell = ws.Cells(i, RequestNote)
+        'Remove that weird whitespace'
+        cell.Value = Replace(cell.Value, ChrW(65279), "")
+        cell.Value = Replace(cell.Value, "Request note:Please check here to opt out of forwarding to ILL to search for additional libraries if necessary (adds 7-14+ days)", "")
+        cell.Value = Replace(cell.Value, ":false", "")
+        cell.Value = Replace(cell.Value, ":true", "")
         If Left(cell.Value, 6) = "Title:" Then
             cell.Value = Mid(cell.Value, 7)
         End If
+        If Left(LCase(cell.Value), 5) <> Left(LCase(ws.Cells(i, Title).Value), 5) Then
+            ws.Cells(i, RSVolume).Value = ws.Cells(i, RSVolume).Value & cell.Value
+        End If
+        RNote = InStr(1, cell.Value, "Request note")
+        Length = Len(cell)
+        If InStr(1, cell.Value, "Request note") > 0 Then
+            ws.Cells(i, RSVolume).Value = ws.Cells(i, RSVolume).Value & Right(cell.Value, (Length - RNote +1))
+        End If
     Next i
 
-    'If Request Note doesn't match the first 7 characters of Title, Concatenate'
+    'Loop through each cell in RSVolume and truncate the value if it exceeds 125 characters this time
     For i = 2 To lastRow
-        If Left(LCase(ws.Cells(i, RequestNote).Value), 7) <> Left(LCase(ws.Cells(i, Title).Value), 7) Then
-            ws.Cells(i, Description).Value = ws.Cells(i, Description).Value & ws.Cells(i, RequestNote).Value
-        End If
-    Next i    
-
-    'Loop through each cell in Description and truncate the value if it exceeds 125 characters this time
-    For i = 2 To lastRow
-        Set cell = ws.Cells(i, Description)      
+        Set cell = ws.Cells(i, RSVolume)
         If Len(cell.Value) > 125 Then
             cell.Value = Left(cell.Value, 125)
         End If
     Next i
 
-    'Append Resource Sharing Volume to Description'
-    For i = 2 To lastRow
-        Set cell = ws.Cells(i, Description)
-        If InStr(1, LCase(cell), LCase(ws.Cells(i, RSVolume))) = 0 And Len(ws.Cells(i, RSVolume)) > 0 Then
-            cell.Value = cell & " " & ws.Cells(i, RSVolume)
-        End If
-    Next i
-
-    'Append Volume to Description'
+    'Append Pages to RSVolume'
     For i = 2 to lastRow
-        Set cell = ws.Cells(i, Description)
-        If InStr(1, LCase(cell), LCase(ws.Cells(i, Volume))) = 0 And Len(ws.Cells(i, Volume)) > 0 Then
-            cell.Value = cell & " v." & ws.Cells(i, Volume)
-        End If
-    Next i
-
-    'Append Issue to Description'
-    For i = 2 to lastRow
-        Set cell = ws.Cells(i, Description)
-        If InStr(1, LCase(cell), LCase(ws.Cells(i, Issue))) = 0 And Len(ws.Cells(i, Issue)) > 0 Then
-            cell.Value = cell & " i." & ws.Cells(i, Issue)
-        End If
-    Next i
-
-    'Append Pages to Description'
-    For i = 2 to lastRow
-        Set cell = ws.Cells(i, Description)
+        Set cell = ws.Cells(i, RSVolume)
         If InStr(1, LCase(cell), LCase(ws.Cells(i, Pages))) = 0 And Len(ws.Cells(i, Pages)) > 0 Then
             cell.Value = cell & " p." & ws.Cells(i, Pages)
         ElseIf Len(ws.Cells(i, Pages)) > 0 Then
@@ -379,7 +359,6 @@ Sub PickFromShelfLending()
     Next i
 
     'Change Usergroup values to codes'
-    'I think we don't end up using this column in this macro so this can be taken/commented out
     For i = 2 To lastRow
         Set cell = ws.Cells(i, User)
         If cell.Value = "Undergrad" Then
@@ -423,10 +402,10 @@ Sub PickFromShelfLending()
     'Format Column Widths'
     ws.Columns(CallNumber).ColumnWidth = 25
     ws.Columns(Location).ColumnWidth = 30.29
-    ws.Columns(Barcode).ColumnWidth = 19.71
+    ws.Columns(Barcode).ColumnWidth = 20.13
     'ws.Columns(Pickup).ColumnWidth = 7.57
     'ws.Columns(User).ColumnWidth = 7.57
-    ws.Columns(Description).ColumnWidth = 25
+    ws.Columns(RSVolume).ColumnWidth = 25
     ws.Columns(Title).ColumnWidth = 42
     ws.Columns(RType).ColumnWidth = 7.86
 

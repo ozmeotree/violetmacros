@@ -218,7 +218,9 @@ Sub PickFromShelfLending()
     'vbCrLf does not work on macs; there's another word for it'
     For i = 2 to lastRow
         Set cell = ws.Cells(i, Location)
-        If InStr(1, LCase(cell), "fine art") > 0 Then
+        If InStr(1, LCase(cell), "(fa)") > 0 Then
+            cell.Value = "Fine Arts"
+        ElseIf InStr(1, LCase(cell), "(fm2)") > 0 Then
             cell.Value = "Fine Arts"
         ElseIf InStr(1, LCase(cell), "reserves") > 0 Then
             cell.Value = "Floor 1 Reserves"

@@ -39,16 +39,6 @@ Sub PickFromShelfBorrowing()
     End If
     X = X + 1
 
-    ' Find and move "Description" column'
-    Dim DescCol As Long
-    DescCol = ws.Rows(1).Find("Description").Column
-    
-    If DescCol <> X Then
-        ws.Columns(DescCol).Cut
-        ws.Columns(X).Insert Shift:=xlToRight
-    End If
-    X = X + 1
-
     ' Find and move "Location" column'
     Dim LocationCol As Long
     LocationCol = ws.Rows(1).Find("Location").Column
@@ -159,14 +149,20 @@ Sub PickFromShelfBorrowing()
     End If
     X = X + 1
 
+    ' Find and move "Description" column'
+    Dim DescCol As Long
+    DescCol = ws.Rows(1).Find("Description").Column
+    
+    If DescCol <> X Then
+        ws.Columns(DescCol).Cut
+        ws.Columns(X).Insert Shift:=xlToRight
+    End If
+    X = X + 1
+
 'Part 3: Assign Variables to all of the new column locations'
 
     Dim CallNumber As Long
     CallNumber = ws.Rows(1).Find("Call Number").Column
-
-    Dim Description As Long
-    Description = ws.Rows(1).Find("Description").Column
-    ws.Cells(1, Description).Value = "Description & Notes"
 
     Dim Location As Long
     Location = ws.Rows(1).Find("Location").Column
@@ -179,7 +175,7 @@ Sub PickFromShelfBorrowing()
 
     Dim Pickup As Long
     Pickup = ws.Rows(1).Find("Pickup Location").Column
-    ws.Cells(1, Pickup).Value = "Usergroup & Pickup location"
+    ws.Cells(1, Pickup).Value = "Hold Shelf"
 
     Dim User As Long
     User = ws.Rows(1).Find("Requester User Group").Column
@@ -204,6 +200,10 @@ Sub PickFromShelfBorrowing()
     Dim RSVolume As Long
     RSVolume = ws.Rows(1).Find("Resource Sharing Volume").Column
 
+    Dim Description As Long
+    Description = ws.Rows(1).Find("Description").Column
+    ws.Cells(1, Description).Value = "Description & Notes"
+
     'lastRow'
     lastRow = ws.Cells(ws.Rows.Count, Title).End(xlUp).Row
 
@@ -217,16 +217,23 @@ Sub PickFromShelfBorrowing()
             cell.Value = "Fine Arts"
         ElseIf InStr(1, LCase(cell), "(fm2)") > 0 Then
             cell.Value = "Fine Arts"
+
         ElseIf InStr(1, LCase(cell), "reserves") > 0 Then
             cell.Value = "Floor 1 Reserves"
         ElseIf InStr(1, LCase(cell), "manew") > 0 Then
             cell.Value = "Floor 1" & vbCrLf & "Bartle New Books"
+        ElseIf InStr(1, LCase(cell), "(mov)") > 0 Then
+            cell.Value = "Floor 2 Oversize"
+        ElseIf InStr(1, LCase(cell), "(movth)") > 0 Then
+            cell.Value = "Floor 2 Oversize Thesis"
         ElseIf InStr(1, LCase(cell), "oversize") > 0 Then
             cell.Value = "Floor 2 " & cell.Value
         ElseIf InStr(1, LCase(cell), "reference") > 0 Then
             cell.Value = "Floor 1" & vbCrLf & cell.Value
         ElseIf InStr(1, LCase(cell), "mezzanine") > 0 Then
             cell.Value = "Floor 2" & vbCrLf & cell.Value
+        ElseIf InStr(1, LCase(cell), "(mmdvd)") > 0 Then
+            cell.Value = "Floor 1 DVD"
         ElseIf InStr(1, LCase(cell), "dvd") > 0 Then
             cell.Value = "Floor 1 " & cell.Value
         ElseIf InStr(1, LCase(cell), "mwang") > 0 Then
@@ -236,6 +243,8 @@ Sub PickFromShelfBorrowing()
                 cell.Value = "Floor 1 Reference"
             Else: cell.Value = "Floor 4 Stacks"
             End If
+        ElseIf InStr(1, LCase(cell), "(mgdoc)") > 0 Then
+            cell.Value = "Floor 1" & vbCrLf & "Gov Docs"
         ElseIf InStr(1, LCase(cell), "gov") > 0 Then
             cell.Value = "Floor 1" & vbCrLf & cell.Value
         ElseIf InStr(1, LCase(cell), "arabic") > 0 Then
@@ -249,9 +258,9 @@ Sub PickFromShelfBorrowing()
         ElseIf InStr(1, LCase(cell), "loft") > 0 Then
             cell.Value = "Floor 2" & vbCrLf & cell.Value
         ElseIf InStr(1, LCase(cell), "leisure") > 0 Then
-            cell.Value = "Floor 2" & vbCrLf & cell.Value
+            cell.Value = "Floor 2 Loft"
         ElseIf InStr(1, LCase(cell), "success") > 0 Then
-            cell.Value = "Floor 2" & vbCrLf & cell.Value
+            cell.Value = "Floor 2 Success Shelf"
         ElseIf InStr(1, LCase(cell), "loops") > 0 Then
             cell.Value = "Ground Floor" & vbCrLf & cell.Value
         End If
@@ -280,15 +289,16 @@ Sub PickFromShelfBorrowing()
     'Loop through each cell in Title and truncate the value if it exceeds 100 characters
     For i = 2 To lastRow
         Set cell = ws.Cells(i, Title)
-        If Len(cell.Value) > 100 Then
-            cell.Value = Left(cell.Value, 100)
+        If Len(cell.Value) > 75 Then
+            cell.Value = Left(cell.Value, 75)
         End If
     Next i
 
     'Send error if there are too many barcodes'
     For i = 2 To lastRow
         Set cell = ws.Cells(i, Barcode)
-        'cell.Value = Replace(cell.Value, ",", ", ")
+        cell.NumberFormat = "0"
+        cell.Value = Replace(cell.Value, ",", vbCrLf)
         If Len(cell.Value) > 75 Then
             cell.Value = "Too many barcodes; please check request"
         End If
@@ -299,8 +309,8 @@ Sub PickFromShelfBorrowing()
         Set cell = ws.Cells(i, Description)
         If Left(cell.Value, 21) = "Chapter/Article Title" Then
             cell.Value = "Item(s) may not scan-in properly; check request if so."
-        ElseIf Len(cell.Value) > 85 Then
-            cell.Value = Left(cell.Value, 85)
+        ElseIf Len(cell.Value) > 50 Then
+            cell.Value = Left(cell.Value, 50)
         End If
     Next i
 
@@ -322,8 +332,8 @@ Sub PickFromShelfBorrowing()
     'Loop through each cell in Description and truncate the value if it exceeds 125 characters this time
     For i = 2 To lastRow
         Set cell = ws.Cells(i, Description)
-        If Len(cell.Value) > 125 Then
-            cell.Value = Left(cell.Value, 125)
+        If Len(cell.Value) > 50 Then
+            cell.Value = Left(cell.Value, 50)
         End If
     Next i
 
@@ -382,9 +392,15 @@ Sub PickFromShelfBorrowing()
             cell.Value = "FAC"
         ElseIf cell.Value = "Preservation Department" Then
             cell.Value = "Presv"
-        ElseIf cell.Value = "Courtesy borrower" Then
+        ElseIf cell.Value = "Local Borrower" Then
             cell.Value = "Cancel if NOS"
         ElseIf cell.Value = "Alumni" Then
+            cell.Value = "Cancel if NOS"
+        ElseIf cell.Value = "Retiree" Then
+            cell.Value = "Cancel if NOS"
+        ElseIf cell.Value = "Volunteer" Then
+            cell.Value = "Cancel if NOS"
+        ElseIf cell.Value = "University Programs" Then
             cell.Value = "Cancel if NOS"
         End If
     Next i
@@ -407,14 +423,22 @@ Sub PickFromShelfBorrowing()
     For i = 2 To lastRow
         Set cell = ws.Cells(i, Pickup)
         If ws.Cells(i, User) = "Cancel if NOS" Then
-            cell.Value = ws.Cells(i, User) & ", " & cell.Value
+            cell.Value = cell.Value & ", " & ws.Cells(i, User)
+        End If
+    Next i
+
+    'Combine Call Number & Description columns'
+    For i = 2 To lastRow
+        Set cell = ws.Cells(i, Description)
+        If Len(cell.Value) > 1 Then
+            ws.Cells(i, CallNumber).Value = ws.Cells(i, CallNumber).Value & vbCrLf & cell.Value
         End If
     Next i
 
 'Part 5: Delete Extraneous Data'
 
     'Delete any columns not in columns A-H'
-    ws.Range("I:BB").EntireColumn.Delete
+    ws.Range("H:BB").EntireColumn.Delete
 
 'Part 6: Assign Column Widths'
 
@@ -429,7 +453,7 @@ Sub PickFromShelfBorrowing()
     ws.Columns(Location).ColumnWidth = 17.25
     ws.Columns(Barcode).ColumnWidth = 22
     'ws.Columns(User).ColumnWidth = 7.57
-    ws.Columns(Description).ColumnWidth = 21
+    'ws.Columns(Description).ColumnWidth = 21
     ws.Columns(Title).ColumnWidth = 30.63
     'ws.Columns(RType).ColumnWidth = 7.86
     ws.Columns("A").ColumnWidth = 4
@@ -442,19 +466,19 @@ Sub PickFromShelfBorrowing()
 
 'Part 7: Format Table'
 
-    ' Format almost the whole sheet as Arial, 14pt font
-    ws.Cells.Font.Name = "Arial"
-    ws.Cells.Font.Size = 14
+    ' Format almost the whole sheet as Cascadia Code, 12pt font
+    ws.Cells.Font.Name = "Cascadia Code"
+    ws.Cells.Font.Size = 12
     ws.Cells(1, 1).Font.Name = "Wingdings"
-    ws.Columns(Description).Font.Size = 13
+    ws.Columns(Pickup).Font.Size = 10
     'ws.Columns(Title).Font.Size = 12
     'ws.Columns(RType).Font.Size = 12
     ws.Columns(CallNumber).Font.Bold = True
 
     'Format the sheet as a table with alternating row colors
     ws.ListObjects.Add(xlSrcRange, ws.Range("A1").CurrentRegion, , xlYes).TableStyle = "TableStyleLight18"
-    ws.Range("A1:H1").Interior.Color = RGB(255, 255, 255)
-    Range("A1:H1").Select
+    ws.Range("A1:G1").Interior.Color = RGB(255, 255, 255)
+    Range("A1:G1").Select
     With Selection
         .HorizontalAlignment = xlCenter
         .WrapText = True
@@ -471,7 +495,7 @@ Sub PickFromShelfBorrowing()
 
     'Autofit Row Height'
     ws.Rows.AutoFit
-    Rows("1:1").RowHeight = 57.75
+    Rows("1:1").RowHeight = 40.75
 
     'Highlight rows based on common locations'
     'Range("A2:H" & lastRow).Select
@@ -514,32 +538,32 @@ Sub PickFromShelfBorrowing()
     
     ' Set the header and footer to 0"
     With ws.PageSetup
-        .LeftHeader = ""
+        .LeftHeader = "&""Franklin Gothic Book,Regular""&10 Pick Up Requested Resources | Printed on &D"
         .CenterHeader = ""
         .RightHeader = ""
         .LeftFooter = ""
         .CenterFooter = ""
         .RightFooter = ""
         .HeaderMargin = Application.InchesToPoints(0.15)
-        .DifferentFirstPageHeaderFooter = True
-        .FirstPage.LeftHeader.Text = "&""Franklin Gothic Book,Regular""&10 Pick Up Requested Resources | Printed on &D"
+        .DifferentFirstPageHeaderFooter = False
+        '.FirstPage.LeftHeader.Text = "&""Franklin Gothic Book,Regular""&10 Pick Up Requested Resources | Printed on &D"
     End With
 
     'Format Column Widths'
-    ws.Columns(CallNumber).ColumnWidth = 19
+    ws.Columns(CallNumber).ColumnWidth = 28.75
     ws.Columns(Location).ColumnWidth = 17.25
-    ws.Columns(Barcode).ColumnWidth = 22
+    ws.Columns(Barcode).ColumnWidth = 21.13
     'ws.Columns(User).ColumnWidth = 7.57
-    ws.Columns(Description).ColumnWidth = 21
-    ws.Columns(Title).ColumnWidth = 30.63
+    'ws.Columns(Description).ColumnWidth = 21
+    ws.Columns(Title).ColumnWidth = 48.5
     'ws.Columns(RType).ColumnWidth = 7.86
     ws.Columns("A").ColumnWidth = 4
-    ws.Columns(Pickup).ColumnWidth = 13.88
+    ws.Columns(Pickup).ColumnWidth = 8.63
     ws.Columns("A").ColumnWidth = 4
 
     'Autofit rows again'
     ws.Rows.AutoFit
-    Rows("1:1").RowHeight = 57.75
+    Rows("1:1").RowHeight = 40.75
 
     Range("A1:A1").Select
 

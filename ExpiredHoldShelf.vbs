@@ -1,6 +1,5 @@
 Sub ExpiredHoldShelf()
-
-'This macro formats the Excel export of Expired Hold Shelf Items from Alma'
+    'This macro formats the Expired Hold Shelf export from Alma into a printable pull list for staff.
 
     ' Set the active sheet as a variable for easier reference
     Dim ws As Worksheet
@@ -12,7 +11,7 @@ Sub ExpiredHoldShelf()
         ws.AutoFilterMode = False
     End If
 
-    ' Add a new column A with the header 'ü' and 5px wide (Trust the process)
+    ' Add a new column A with the header 'ü' and 5px wide
     ws.Columns("A").Insert
     ws.Cells(1, 1).Value = "ü"
     ws.Columns("A").ColumnWidth = 5
@@ -29,73 +28,59 @@ Sub ExpiredHoldShelf()
     ws.Range("B:B").EntireColumn.Delete
 
     'Make title column C'
-
-    Dim X as Long
-    X = 3
-
     ' Find the column number of the "Title" header
     Dim TitleCol As Long
     TitleCol = ws.Rows(1).Find("Title").Column
    
-    If TitleCol <> X Then
+    If TitleCol <> 3 Then
         ' Cut and insert the "Title" column to be column F
         ws.Columns(TitleCol).Cut
         ws.Columns("C").Insert Shift:=xlToRight
     End If
 
-    X = X + 1
-
-    'Make Location column D'
-    ' Find the column number of the "Location" header
-    Dim LocationCol As Long
-    LocationCol = ws.Rows(1).Find("Location").Column
+    'Make Barcode column D'
+    ' Find the column number of the "Barcode" header
+    Dim BarcodeCol As Long
+    BarcodeCol = ws.Rows(1).Find("Barcode").Column
    
-    If LocationCol <> X Then
-        ' Cut and insert the "Location" column to be column D
-        ws.Columns(LocationCol).Cut
+    If BarcodeCol <> 4 Then
+        ' Cut and insert the "Barcode" column to be column D
+        ws.Columns(BarcodeCol).Cut
         ws.Columns("D").Insert Shift:=xlToRight
     End If
-
-    X = X + 1
 
     'Make Held For column E'
     ' Find the column number of the "Held For" header
     Dim HeldCol As Long
     HeldCol = ws.Rows(1).Find("Held For").Column
    
-    If HeldCol <> X Then
+    If HeldCol <> 5 Then
         ' Cut and insert the "Held For" column to be column E
         ws.Columns(HeldCol).Cut
         ws.Columns("E").Insert Shift:=xlToRight
     End If
-
-    X = X + 1
 
     'Make Preferred Identifier column F'
     ' Find the column number of the "Preferred Identifier" header
     Dim IDCol As Long
     IDCol = ws.Rows(1).Find("Preferred Identifier").Column
    
-    If IDCol <> X Then
+    If IDCol <> 6 Then
         ' Cut and insert the "Preferred Identifier" column to be column F
         ws.Columns(IDCol).Cut
         ws.Columns("F").Insert Shift:=xlToRight
     End If
-
-    X = X + 1
 
     'Make Held Until column G'
     ' Find the column number of the "Held Until" header
     Dim UntilCol As Long
     UntilCol = ws.Rows(1).Find("Held Until").Column
    
-    If UntilCol <> X Then
+    If UntilCol <> 7 Then
         ' Cut and insert the "Location" column to be column G
         ws.Columns(UntilCol).Cut
         ws.Columns("G").Insert Shift:=xlToRight
     End If
-
-    X = X + 1
 
     'Change header of Column C to Title
     ws.Cells(1, 3).Value = "Title"
@@ -104,8 +89,9 @@ Sub ExpiredHoldShelf()
     ws.Cells(1, 6).Value = "Username"
 
     'Format Column Widths'
-    ws.Columns("F").ColumnWidth = 15
-    ws.Columns("D").ColumnWidth = 33
+    ws.Columns("C").ColumnWidth = 53
+    ws.Columns("F").ColumnWidth = 18
+    ws.Columns("D").ColumnWidth = 23
     ws.Columns("E").ColumnWidth = 33
     ws.Columns("G").ColumnWidth = 15
 
@@ -113,14 +99,14 @@ Sub ExpiredHoldShelf()
     'Find the last row of data in column C
     lastRoww = ws.Cells(ws.Rows.Count, "C").End(xlUp).Row
 
-    'Loop through each cell and truncate the value if it exceeds 150 characters
+    'Loop through each cell in column F and truncate the value if it exceeds 150 characters
     For i = 1 To lastRoww
         If Len(ws.Cells(i, "C").Value) > 150 Then
             ws.Cells(i, "C").Value = Left(ws.Cells(i, "C").Value, 150)
         End If
     Next i
 
-    'Resize'
+    'Resize F'
     ws.Columns("C").AutoFit
 
     If ws.Columns("C").ColumnWidth > 50 Then
@@ -145,6 +131,7 @@ Sub ExpiredHoldShelf()
      End With
     With Selection.Font
         .Size = 14
+       
     End With
    
     ' Check if a filter is currently applied
@@ -155,7 +142,8 @@ Sub ExpiredHoldShelf()
 
     'Middle Align Entire Sheet'
     ws.Cells.VerticalAlignment = xlCenter
-    ws.Columns("B:B").HorizontalAlignment = xlCenter
+    ws.Columns.HorizontalAlignment = xlCenter
+    ws.Columns("C:C").HorizontalAlignment = xlLeft
    
     With ws.PageSetup
         .Zoom = False
@@ -186,5 +174,9 @@ Sub ExpiredHoldShelf()
         .CenterFooter = ""
         .RightFooter = ""
     End With
+
+    'Autofit rows again'
+    ws.Rows.AutoFit
+    Rows("1:1").RowHeight = 40.75
 
 End Sub

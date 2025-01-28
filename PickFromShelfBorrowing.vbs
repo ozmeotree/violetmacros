@@ -217,7 +217,10 @@ Sub PickFromShelfBorrowing()
             cell.Value = "Fine Arts"
         ElseIf InStr(1, LCase(cell), "(fm2)") > 0 Then
             cell.Value = "Fine Arts"
-
+        ElseIf InStr(1, LCase(cell), "(fourth)") > 0 Then
+            cell.Value = "Floor 4 Stacks"
+        ElseIf InStr(1, LCase(cell), "(third)") > 0 Then
+            cell.Value = "Floor 3 Stacks"
         ElseIf InStr(1, LCase(cell), "reserves") > 0 Then
             cell.Value = "Floor 1 Reserves"
         ElseIf InStr(1, LCase(cell), "manew") > 0 Then
@@ -401,6 +404,8 @@ Sub PickFromShelfBorrowing()
         ElseIf cell.Value = "Volunteer" Then
             cell.Value = "Cancel if NOS"
         ElseIf cell.Value = "University Programs" Then
+            cell.Value = "Cancel if NOS"
+        ElseIf cell.Value = "Open SUNY" Then
             cell.Value = "Cancel if NOS"
         End If
     Next i

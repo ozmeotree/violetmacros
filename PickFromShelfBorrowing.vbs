@@ -29,6 +29,17 @@ Sub PickFromShelfBorrowing()
     Dim X As Long
     X = 3
 
+    'Find and move the "Pickup Location" column'
+    Dim PickupCol As Long
+    PickupCol = ws.Rows(1).Find("Pickup Location").Column
+
+    If PickupCol <> X Then
+        ws.Columns(PickupCol).Cut
+        ws.Columns(X).Insert Shift:=xlToRight
+    End If
+    ws.Cells(1, X).Value = "Hold Shelf"
+    X = X + 1
+
     ' Find and move the "Call Number" column'
     Dim CallCol As Long
     CallCol = ws.Rows(1).Find("Call Number").Column
@@ -65,16 +76,6 @@ Sub PickFromShelfBorrowing()
     
     If BarcodeCol <> X Then
         ws.Columns(BarcodeCol).Cut
-        ws.Columns(X).Insert Shift:=xlToRight
-    End If
-    X = X + 1
-
-    'Find and move the "Pickup Location" column'
-    Dim PickupCol As Long
-    PickupCol = ws.Rows(1).Find("Pickup Location").Column
-
-    If PickupCol <> X Then
-        ws.Columns(PickupCol).Cut
         ws.Columns(X).Insert Shift:=xlToRight
     End If
     X = X + 1
@@ -174,8 +175,7 @@ Sub PickFromShelfBorrowing()
     Barcode = ws.Rows(1).Find("Barcode").Column
 
     Dim Pickup As Long
-    Pickup = ws.Rows(1).Find("Pickup Location").Column
-    ws.Cells(1, Pickup).Value = "Hold Shelf"
+    Pickup = ws.Rows(1).Find("Hold Shelf").Column
 
     Dim User As Long
     User = ws.Rows(1).Find("Requester User Group").Column
